@@ -1,0 +1,37 @@
+diff --git a/print_debug.h.S b/print_debug.h.S
+index 9d35bb9..5183031 100644
+--- a/print_debug.h.S
++++ b/print_debug.h.S
+@@ -13,7 +13,6 @@
+ 
+ #include "trace_helpers.h.S"
+ 
+-/*
+ print_tty_desc:
+ 	QUAD_MEM2 (print_tty)
+ 	
+@@ -52,7 +51,7 @@ print_tty:
+ 	ld	%r25, 0x78(%r1)
+ 	addi	%r1, %r1, 0x90
+ 	mtlr	%r0
+-	blr*/
++	blr
+ 
+ print_hvsc107:
+ 	mflr	%r0
+@@ -77,7 +76,7 @@ print_hvsc107:
+ 	addi	%r1, %r1, 0x100
+ 	mtlr	%r0
+ 	blr
+-/*
++
+ print_debug:
+ 	mflr	%r0
+ 	stdu	%r1, -0x70(%r1)
+@@ -90,5 +89,5 @@ print_debug:
+ 	addi	%r1, %r1, 0x70
+ 	mtlr	%r0
+ 	blr
+-*/	
++
+ #endif /* __PRINT_DEBUG_H_S__ */

@@ -1,0 +1,21 @@
+diff --git a/payload_trace_all_sc_calls.S b/payload_trace_all_sc_calls.S
+index 8c23d4c..a9cb7ae 100644
+--- a/payload_trace_all_sc_calls.S
++++ b/payload_trace_all_sc_calls.S
+@@ -22,7 +22,6 @@
+ #include "hook_hvsc.h.S"
+ 
+ RESIDENT_AREA_START()
+-#include "dev_syscalls.h.S"
+ #include "memory_patching_res.h.S"
+ #include "hvsc_handler.h.S"
+ #include "syscall_handler.h.S"
+@@ -48,8 +47,6 @@ payload_main:
+ 	LOAD_FUNC_PTR(send_eth)
+ 	INIT_SEND_ETH(%r30)
+ 
+-	ADD_SYSCALL (%r30, syscall_peek_desc, 6)
+-	ADD_SYSCALL (%r30, syscall_poke_desc, 7)
+ 
+ 	APPLY_PATCHES(%r30, %r31)
+ 	// Replace hvsc after we copy our handler to the resident area

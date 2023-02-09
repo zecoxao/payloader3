@@ -1,0 +1,359 @@
+diff --git a/libkammy/source/kammy.cpp b/libkammy/source/kammy.cpp
+index 4dda3ed..6845515 100644
+--- a/libkammy/source/kammy.cpp
++++ b/libkammy/source/kammy.cpp
+@@ -34,31 +34,46 @@ static u64 SyscallPeek(void* address)
+ 
+ bool Kammy_IsInitialised()
+ {
++	printf ( "libkammy/source/kammy.cpp: Kammy_IsInitialised()  :: %llx & %llx == %llx & %llx\n", (long long unsigned int)Kammy_Version(), (long long unsigned int)KAMMY_VERSION_MASK, (long long unsigned int)KAMMY_VERSION, (long long unsigned int)KAMMY_VERSION_MASK ) ;
+ 	return (Kammy_Version() & KAMMY_VERSION_MASK) == (KAMMY_VERSION & KAMMY_VERSION_MASK);
+ }
+ 
+ bool Kammy_Initialise()
+ {
++	printf ( "libkammy/source/kammy.cpp: Kammy_Initialise()\n" ) ;
+ 	if (Kammy_IsInitialised())
++	{
++		printf ( "libkammy/source/kammy.cpp: Kammy_Initialise() :: already initialized\n" ) ;
+ 		return true;
++	}
+ 
+ 	const Lv2Module* kammy = Kammy_Load(kammy_bin);
+ 	if (!kammy)
++	{
++		printf ( "libkammy/source/kammy.cpp: Kammy_Initialise() :: Kammy_Load() failed\n" ) ;
+ 		return false;
++	}
+ 	
+ 	u64 ret;
+ 	if (!kammy->ExecuteInternal(&ret))
++	{
++		printf ( "libkammy/source/kammy.cpp: Kammy_Initialise() :: Kammy_ExecuteInternal() failed\n" ) ;
+ 		return false;
++	}
++
++	printf ( "libkammy/source/kammy.cpp: Kammy_Initialise() :: Version: %llx\n", (long long unsigned int)KAMMY_VERSION ) ;
+ 	return ret == KAMMY_VERSION;
+ }
+ 
+ const Lv2Module* Kammy_Load(const void* data)
+ {
++	printf ( "libkammy/source/kammy.cpp: Kammy_Load()\n" ) ;
+ 	return (const Lv2Module*)data;
+ }
+ 
+ static void RelocateMemcpy(u64* dest, u64* data, u32 size, u64 base, void* newbase)
+ {
++	printf ( "libkammy/source/kammy.cpp: RelocateMemcpy()\n" ) ;
+ 	for (u32 i = 0; i < size / 8; i++) {
+ 		u64 value = data[i];
+ 		if ((value & 0xFFFFFFFF00000000ULL) == base)
+@@ -70,8 +85,12 @@ static void RelocateMemcpy(u64* dest, u64* data, u32 size, u64 base, void* newba
+ 
+ bool Lv2Module::ExecuteInternal(u64* ret) const
+ {
++	printf ( "libkammy/source/kammy.cpp: ExecuteInternal()\n" ) ;
+ 	if (!Verify())
++	{
++		printf ( "libkammy/source/kammy.cpp: Verify() failed\n" ) ;
+ 		return false;
++	}
+ 
+ 	if (SyscallPeek(KAMMY_RTOC_BASE) != KAMMY_RTOC) {
+ 		fprintf(stderr, "\tError! Kammy only works on retail 3.41.\n");
+@@ -84,32 +103,52 @@ bool Lv2Module::ExecuteInternal(u64* ret) const
+ 		fprintf(stderr, "\tError! Peek and poke not implemented.\n");
+ 		return false;
+ 	}
++	printf ( "libkammy/source/kammy.cpp: ExecuteInternal() :: SyscallPoke()\n" ) ;
+ 	SyscallPoke(addr, (u64)LV2_ALLOC);
+ 	
+ 	u32 size = ROUND_UP(GetDataSize(), 0x08);
+ 	u64* address = (u64*)Lv2Syscall2(KAMMY_SYSCALL, size, 0x27);
+ 	if (!address || (u32)(u64)address == 0x8001003)
++	{
++		printf ( "libkammy/source/kammy.cpp: ExecuteInternal() :: size issue\n" ) ;
+ 		return false;
++	}
++	printf ( "libkammy/source/kammy.cpp: ExecuteInternal() :: RelocateMemcpy()\n" ) ;
+ 	RelocateMemcpy(address, (u64*)Data, size, TextBase, address);
++	printf ( "libkammy/source/kammy.cpp: ExecuteInternal() :: SyscallPoke()\n" ) ;
+ 	SyscallPoke((u64*)LV2_SYSCALL_TABLE + KAMMY_SYSCALL, (MainEntry - TextBase) + (u64)address);
+ 	// HACK: The hypervisor doesn't obey the opd rtoc, so we have to pass it
++	printf ( "libkammy/source/kammy.cpp: ExecuteInternal() :: opd rtoc passing\n" ) ;
+ 	u64 value = Lv2Syscall1(KAMMY_SYSCALL, *(u64*)(Data + (MainEntry - TextBase) + 8) - TextBase + (u64)address);
+ 	if (ret)
++	{
++		printf ( "libkammy/source/kammy.cpp: ExecuteInternal() :: opd rtoc returned [%llx]\n", (long long unsigned int)value ) ;
+ 		*ret = value;
++	}
+ 	return true;
+ }
+ 
+ bool Lv2Module::Execute(u64* ret, u64 param1, u64 param2, u64 param3, u64 param4, u64 param5, u64 param6) const
+ {
++	printf ( "libkammy/source/kammy.cpp: Lv2Module::Execute()\n" ) ;
+ 	if (!Verify())
++	{
++		printf ( "libkammy/source/kammy.cpp: Lv2Module::Execute() :: Verify() failed\n" ) ;
+ 		return false;
++	}
+ 	u32 size = ROUND_UP(GetDataSize(), 0x08);
+ 	void* address = Kammy_Alloc(size);
+ 	if (!address)
++	{
++		printf ( "libkammy/source/kammy.cpp: Lv2Module::Execute() :: Kammy_Alloc failed\n" ) ;
+ 		return false;
++	}
+ 	RelocateMemcpy((u64*)address, (u64*)Data, size, TextBase, address);
+ 	u64 value = Kammy_Execute((void*)((MainEntry - TextBase) + (u64)address), param1, param2, param3, param4, param5, param6);
+ 	if (ret)
++	{
++		printf ( "libkammy/source/kammy.cpp: Lv2Module::Execute() :: Kammy_Execute success!!\n" ) ;
+ 		*ret = value;
++	}
+ 	return true;
+ }
+diff --git a/loader/source/main.cpp b/loader/source/main.cpp
+index b78ec56..b6ab3f4 100644
+--- a/loader/source/main.cpp
++++ b/loader/source/main.cpp
+@@ -1,6 +1,7 @@
+ #include <psl1ght/lv2.h>
+ #include <kammy.h>
+ #include <common/kammy_lv2.h>
++#include <lv2/process.h>
+ 
+ #include "ethdebug.bin.h"
+ 
+@@ -9,7 +10,7 @@
+ static u64 LoadModule(const u8* bin, const char* name, u64 param1 = 0, u64 param2 = 0, u64 param3 = 0, u64 param4 = 0, u64 param5 = 0, u64 param6 = 0)
+ {
+ 	u64 ret = KAMMY_ERROR;
+-	printf("\tLoading %s into lv2... ", name);
++	printf("\tLoading %s into lv2...\n", name);
+ 	const Lv2Module* module = Kammy_Load(bin);
+ 	if (!module->Verify()) {
+ 		printf("Failed! %s is corrupt.\n", name);
+@@ -63,5 +64,8 @@ extern "C" int main(int argc, char** argv)
+ 
+ 	printf("Aaand we're done for tonight folks.\n");
+ 
++        printf("spawning ps3load...\n");
++        sysProcessExitSpawn2("/dev_hdd0/game/PayLoader/USRDIR/tools/ps3load.self", NULL, NULL, NULL, 0, 1001, SYS_PROCESS_SPAWN_STACK_SIZE_1M);
++
+ 	return 0;
+ }
+diff --git a/lv2/Makefile.ethdebug b/lv2/Makefile.ethdebug
+index 02a3506..f48a85b 100644
+--- a/lv2/Makefile.ethdebug
++++ b/lv2/Makefile.ethdebug
+@@ -21,6 +21,7 @@ LD			:= ppu-ld
+ 
+ CFLAGS		+= -nodefaultlibs -nostdlib \
+ 			   -fno-builtin -fno-exceptions \
++			   -fno-builtin -fno-exceptions \
+ 			   -Os -Wall \
+ 			   -DLV2
+ CXXFLAGS	:= $(CFLAGS) -fno-rtti
+diff --git a/lv2/Makefile.kammy b/lv2/Makefile.kammy
+index 34a7315..07bae25 100644
+--- a/lv2/Makefile.kammy
++++ b/lv2/Makefile.kammy
+@@ -19,8 +19,10 @@ LIBS		:=
+ 
+ LD			:=	ppu-ld
+ 
+-CFLAGS		+= -nodefaultlibs -nostdlib -m64 \
+-			   -fno-builtin -fno-exceptions \
++#CFLAGS		+= -nodefaultlibs -nostdlib -m64 \
++#			   -fno-builtin -fno-exceptions \
++
++CFLAGS		+= -fno-builtin -fno-exceptions \
+ 			   -Os -Wall \
+ 			   -DLV2 -DKAMMY
+ CXXFLAGS	:= $(CFLAGS) -fno-rtti
+diff --git a/lv2/common/kammy_lv2.cpp b/lv2/common/kammy_lv2.cpp
+index d076843..8ddba90 100644
+--- a/lv2/common/kammy_lv2.cpp
++++ b/lv2/common/kammy_lv2.cpp
+@@ -2,48 +2,65 @@
+ 
+ #ifndef KAMMY
+ 
++#ifdef __cplusplus
++#define LV2_EXPORT extern "C" __attribute__((longcall))
++#else
++#define LV2_EXPORT extern __attribute__((longcall))
++#endif
++
++LV2_EXPORT int printf(const char *format, ...);
++
+ u64 Kammy_Version()
+ {
++	printf ( "lv2/common/kammy_lv2.cpp: Kammy_Version() :: lv2syscall1(%d, %d)\n", KAMMY_SYSCALL, KAMMY_SUBCALL_VERSION );
+ 	return Lv2Syscall1(KAMMY_SYSCALL, KAMMY_SUBCALL_VERSION);
+ }
+ 
+ KAMMY_PTR Kammy_Alloc(u64 size)
+ {
++	printf ( "lv2/common/kammy_lv2.cpp: Kammy_Alloc() :: lv2syscall2(%d, %d, %llx)\n", KAMMY_SYSCALL, KAMMY_SUBCALL_ALLOC, (long long unsigned int)size );
+ 	return (KAMMY_PTR)Lv2Syscall2(KAMMY_SYSCALL, KAMMY_SUBCALL_ALLOC, size);
+ }
+ 
+ void Kammy_Dealloc(KAMMY_PTR addr)
+ {
++	printf ( "lv2/common/kammy_lv2.cpp: Kammy_Dealloc() :: lv2syscall2(%llx)\n", (long long unsigned int)addr );
+ 	Lv2Syscall2(KAMMY_SYSCALL, KAMMY_SUBCALL_DEALLOC, (u64)addr);
+ }
+ 
+ u64 Kammy_Execute(KAMMY_PTR addr, u64 param1, u64 param2, u64 param3, u64 param4, u64 param5, u64 param6)
+ {
++	printf ( "lv2/common/kammy_lv2.cpp: Kammy_Execute() :: lv2syscall8()\n" );
+ 	return Lv2Syscall8(KAMMY_SYSCALL, KAMMY_SUBCALL_EXEC, (u64)addr, param1, param2, param3, param4, param5, param6);
+ }
+ 
+ void Kammy_Memcpy(KAMMY_PTR dest, KAMMY_PTR src, u64 size)
+ {
++	printf ( "lv2/common/kammy_lv2.cpp: Kammy_Memcpy() :: lv2syscall4()\n" );
+ 	Lv2Syscall4(KAMMY_SYSCALL, KAMMY_SUBCALL_MEMCPY, (u64)dest, (u64)src, size);
+ }
+ 
+ void Kammy_HookSyscall(u32 syscall, KAMMY_PTR func)
+ {
++	printf ( "lv2/common/kammy_lv2.cpp: Kammy_HookSyscall() :: lv2syscall3(%d, %d, %d, %llx)\n", KAMMY_SYSCALL, KAMMY_SUBCALL_HOOK_SYSCALL, syscall, (long long unsigned int)func );
+ 	Lv2Syscall3(KAMMY_SYSCALL, KAMMY_SUBCALL_HOOK_SYSCALL, syscall, (u64)func);
+ }
+ 
+ void Kammy_HookBranch(KAMMY_PTR branch, KAMMY_PTR func, bool lr)
+ {
++	printf ( "lv2/common/kammy_lv2.cpp: Kammy_HookBranch() :: lv2syscall4(%d, %d, %llx, %llx, %d)\n", KAMMY_SYSCALL, KAMMY_SUBCALL_HOOK_BRANCH, (long long unsigned int)branch, (long long unsigned int)func, lr );
+ 	Lv2Syscall4(KAMMY_SYSCALL, KAMMY_SUBCALL_HOOK_BRANCH, (u64)branch, (u64)func, lr);
+ }
+ 
+ s64 Kammy_HookSubcall(u64 subcall, KAMMY_PTR func)
+ {
++	printf ( "lv2/common/kammy_lv2.cpp: Kammy_HookSubcall() :: lv2syscall3(%d, %d, %llx, %llx)\n", KAMMY_SYSCALL, KAMMY_SUBCALL_HOOK_SUBCALL, (long long unsigned int)subcall, (long long unsigned int)func );
+ 	return Lv2Syscall3(KAMMY_SYSCALL, KAMMY_SUBCALL_HOOK_SUBCALL, subcall, (u64)func);
+ }
+ 
+ u64 Kammy_CallSubcall(u64 subcall, u64 param1, u64 param2, u64 param3, u64 param4, u64 param5, u64 param6)
+ {
++	printf ( "lv2/common/kammy_lv2.cpp: Kammy_CallSubcall() :: lv2syscall8(%d, %d, %llx, %llx, %llx, %llx, %llx, %llx, %llx)\n", KAMMY_SYSCALL, KAMMY_SUBCALL_CALL_SUBCALL, (long long unsigned int)subcall, (long long unsigned int)param1, (long long unsigned int)param2, (long long unsigned int)param3, (long long unsigned int)param4, (long long unsigned int)param5, (long long unsigned int)param6 );
+ 	return Lv2Syscall8(KAMMY_SYSCALL, KAMMY_SUBCALL_CALL_SUBCALL, subcall, param1, param2, param3, param4, param5, param6);
+ }
+ 
+diff --git a/lv2/common/kammy_lv2.h b/lv2/common/kammy_lv2.h
+index e431492..7e47581 100644
+--- a/lv2/common/kammy_lv2.h
++++ b/lv2/common/kammy_lv2.h
+@@ -1,5 +1,6 @@
+ #pragma once
+ 
++#include "lv2.h"
+ #include <psl1ght/lv2.h>
+ 
+ #define KAMMY_VERSION		0x4A33100000000001ULL
+diff --git a/lv2/ethdebug/main.cpp b/lv2/ethdebug/main.cpp
+index 33db0d2..0e1affe 100644
+--- a/lv2/ethdebug/main.cpp
++++ b/lv2/ethdebug/main.cpp
+@@ -9,7 +9,9 @@ int ttyWriteHook(int channel, const char* message, int length, int* written)
+ {
+ 	debug_print(message, length);
+ 	if (written)
++        {
+ 		*written = length;
++        }
+ 	return 0;
+ }
+ 
+@@ -17,12 +19,24 @@ extern "C" u64 start()
+ {
+ 	u64 ret = debug_init();
+ 	if (ret)
++        {
+ 		return ret;
++        }
+ 	ret = debug_printf("ethdebug.bin: Initialized\n");
+ 	if (ret)
++        {
+ 		return ret;
++        }
++
++	debug_printf("ethdebug.bin: hooking\n");
++
+ 	Kammy_HookSyscall(403, (void*)ttyWriteHook); // tty_write
++	debug_printf("ethdebug.bin: ttyWrite hooked\n");
++
+ 	Kammy_HookBranch((void*)0x800000000028A654, (void*)debug_printf, false); // lv2_printf
++	debug_printf("ethdebug.bin: lv2_printf hooked\n");
++
+ 	Kammy_HookBranch((void*)0x800000000028F050, (void*)debug_printf, false); // lv2_printf_null
++	debug_printf("ethdebug.bin: lv2_printf_null hooked\n");
+ 	return 0;
+ }
+diff --git a/lv2/kammy/main.cpp b/lv2/kammy/main.cpp
+index c3f88a2..783a4e8 100644
+--- a/lv2/kammy/main.cpp
++++ b/lv2/kammy/main.cpp
+@@ -1,3 +1,4 @@
++#include <stdio.h>
+ #include "lv2.h"
+ #include "kammy_lv2.h"
+ 
+@@ -19,6 +20,7 @@ Subcall SubcallTable[] = {
+ 
+ u64 Kammy_Handler(u64 subcall, u64 param1, u64 param2, u64 param3, u64 param4, u64 param5, u64 param6, u64 param7)
+ {
++	printf ( "lv2/kammy/main.cpp: Kammy_Handler() :: SubcallTable[%llx](%llx, %llx, %llx, %llx, %llx, %llx, %llx)\n", (long long unsigned int)subcall, (long long unsigned int)param1, (long long unsigned int)param2, (long long unsigned int)param3, (long long unsigned int)param4, (long long unsigned int)param5, (long long unsigned int)param6, (long long unsigned int)param7 ) ;
+ 	if (subcall >= KAMMY_SUBCALL_MAX)
+ 		return KAMMY_ERROR_INVALID;
+ 	return SubcallTable[subcall](param1, param2, param3, param4, param5, param6, param7);
+@@ -26,26 +28,31 @@ u64 Kammy_Handler(u64 subcall, u64 param1, u64 param2, u64 param3, u64 param4, u
+ 
+ u64 Kammy_Version()
+ {
++	printf ( "lv2/kammy/main.cpp: Kammy_Version() :: %llx", KAMMY_VERSION ) ;
+ 	return KAMMY_VERSION;
+ }
+ 
+ #define KAMMY_ALLOC_UNK 0x27
+ void* Kammy_Alloc(u64 size)
+ {
++	printf ( "lv2/kammy/main.cpp: Kammy_Alloc() :: alloc(%llx, %x)\n", (long long unsigned int)size, KAMMY_ALLOC_UNK ) ;
+ 	return alloc(size, KAMMY_ALLOC_UNK);
+ }
+ void Kammy_Dealloc(void* addr)
+ {
++	printf ( "lv2/kammy/main.cpp: Kammy_Dealloc() :: dealloc(%llx, %x)\n", (long long unsigned int)addr, KAMMY_ALLOC_UNK ) ;
+ 	dealloc(addr, KAMMY_ALLOC_UNK);
+ }
+ 
+ void Kammy_Memcpy(void* dest, void* src, u64 size)
+ {
++	printf ( "lv2/kammy/main.cpp: Kammy_Memcpy() :: memcpy(%llx, %llx, %llx)\n", (long long unsigned int)dest, (long long unsigned int)src, (long long unsigned int)size ) ;
+ 	memcpy(dest, src, size);
+ }
+ 
+ u64 Kammy_Execute(void* addr, u64 param1, u64 param2, u64 param3, u64 param4, u64 param5, u64 param6)
+ {
++	printf ( "lv2/kammy/main.cpp: Kammy_Execute() :: Subcall[%llx](%llx, %llx, %llx, %llx, %llx, %llx, %llx)\n", (long long unsigned int)addr, (long long unsigned int)param1, (long long unsigned int)param2, (long long unsigned int)param3, (long long unsigned int)param4, (long long unsigned int)param5, (long long unsigned int)param6, (long long unsigned int)0 ) ;
+ 	return ((Subcall)addr)(param1, param2, param3, param4, param5, param6, 0);
+ }
+ 
+@@ -54,9 +61,13 @@ void __Init_Module();
+ 
+ extern "C" u64 start()
+ {
++	printf ( "lv2/kammy/main.cpp: start() :: RemoveMemoryProtection()\n" ) ;
+ 	RemoveMemoryProtection();
++	printf ( "lv2/kammy/main.cpp: start() :: Kammy_HookSyscall(%d, %llx)\n", KAMMY_SYSCALL, (long long unsigned int)Kammy_Handler ) ;
+ 	Kammy_HookSyscall(KAMMY_SYSCALL, (void*)Kammy_Handler);
++	printf ( "lv2/kammy/main.cpp: start() :: __Init_Module()\n" ) ;
+ 	__Init_Module();
++	printf ( "lv2/kammy/main.cpp: start() :: return Kammy_Version()\n" ) ;
+ 	return Kammy_Version();
+ }
+ 

@@ -1,0 +1,23 @@
+diff --git a/payload_dev.S b/payload_dev.S
+index 5a13112..bfeb582 100644
+--- a/payload_dev.S
++++ b/payload_dev.S
+@@ -22,7 +22,6 @@
+ #include "send_eth.h.S"
+ 
+ RESIDENT_AREA_START()
+-#include "dev_syscalls.h.S"
+ #include "open_hook.h.S"
+ #include "memory_patching_res.h.S"
+ #include "send_eth_res.h.S"
+@@ -53,9 +52,7 @@ payload_main:
+ 	LOAD_FUNC_PTR(send_eth)
+ 	INIT_SEND_ETH(%r30)
+ 
+-	//ADD_SYSCALL (%r30, print_tty_desc, 403)
+-	ADD_SYSCALL (%r30, syscall_peek_desc, 6)
+-	ADD_SYSCALL (%r30, syscall_poke_desc, 7)
++	ADD_SYSCALL (%r30, print_tty_desc, 403)
+ 	ADD_SYSCALL (%r30, syscall_map_open_desc, 35)
+ 
+ 	// Add default /app_home redirection

@@ -1,0 +1,23 @@
+diff --git a/Makefile b/Makefile
+index 5037239..4e7ef57 100644
+--- a/Makefile
++++ b/Makefile
+@@ -7,7 +7,7 @@ PPU_OBJCOPY = ppu-objcopy
+ PPU_CFLAGS =
+ 
+ # This isn't enough, you must also add rules for the filename_fw with the -D define
+-SUPPORTED_FIRMWARES = 3.41 3.41_kiosk 3.40 3.30 3.21 3.15 3.10 3.01 2.85 2.76 2.70 2.60 2.53 2.43
++SUPPORTED_FIRMWARES = 3.41 3.41_kiosk 3.41_debug 3.40 3.30 3.21 3.15 3.10 3.01 2.85 2.76 2.70 2.60 2.53 2.43
+ 
+ PAYLOADS = shellcode_egghunt.bin \
+ 	shellcode_panic.bin \
+@@ -117,6 +117,9 @@ $(ALL_PAYLOADS): *.h.S config.h
+ %_3_41_kiosk.o : %.S
+ 	$(PPU_CC) $(PPU_CFLAGS) -DFIRMWARE_3_41 -DKIOSK  -c $< -o $@
+ 
++%_3_41_debug.o : %.S
++	$(PPU_CC) $(PPU_CFLAGS) -DFIRMWARE_3_41_DEBUG -c $< -o $@
++
+ %_3_55.o : %.S
+ 	$(PPU_CC) $(PPU_CFLAGS) -DFIRMWARE_3_55 -DSTANDALONE -c $< -o $@
+ 

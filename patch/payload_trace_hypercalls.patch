@@ -1,0 +1,21 @@
+diff --git a/payload_trace_hypercalls.S b/payload_trace_hypercalls.S
+index 4b7a456..61a058f 100644
+--- a/payload_trace_hypercalls.S
++++ b/payload_trace_hypercalls.S
+@@ -22,7 +22,6 @@
+ #include "hook_hvsc.h.S"
+ 
+ RESIDENT_AREA_START()
+-#include "dev_syscalls.h.S"
+ #include "memory_patching_res.h.S"
+ #include "send_eth_res.h.S"
+ #include "hvsc_handler.h.S"
+@@ -49,8 +48,6 @@ payload_main:
+ 	LOAD_FUNC_PTR(send_eth)
+ 	INIT_SEND_ETH(%r30)
+ 
+-	ADD_SYSCALL (%r30, syscall_peek_desc, 6)
+-	ADD_SYSCALL (%r30, syscall_poke_desc, 7)
+ 
+ 	APPLY_PATCHES(%r30, %r31)
+ 
