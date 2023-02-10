@@ -99,7 +99,7 @@ rsxScreenInitialize (videoData *vdata, u32 size)
   /* Initialize RSX context
    * which sets up the command buffer and shared IO memory
    */
-  context = rsxInit (&context, CB_SIZE, size, vdata->host_addr);
+  context = rsxInit (CB_SIZE, size, vdata->host_addr);
   if (context == NULL)
   {
     errprintf ( "ERROR" ) ;
@@ -404,7 +404,9 @@ rsxWaitIdle(gcmContextData *context)
 inline void
 rsxClearBuffer ( gcmContextData *context )
 {
-	rsxClearSurface( context, 0x00000000 ) ;
+  rsxSetClearColor ( context, 0x00000000 ) ;
+  rsxSetClearDepthValue ( context, 0x00000000 ) ;
+  rsxClearSurface ( context, GCM_CLEAR_Z|GCM_CLEAR_R|GCM_CLEAR_G|GCM_CLEAR_B|GCM_CLEAR_A ) ;
 }
 
 /* rsx blending */
@@ -426,7 +428,7 @@ rsxSetRenderTarget(videoData *vdata )
   memset ( &sf, 0, sizeof ( gcmSurface ) ) ;
 
   sf.colorFormat      = GCM_TF_COLOR_A8R8G8B8;
-  sf.colorTarget      = GCM_SURFACE_TARGET_0;
+  sf.colorTarget      = GCM_TF_TARGET_0;
   sf.colorLocation[0] = GCM_LOCATION_RSX;
   sf.colorOffset[0]   = vdata->rsx_buffers[vdata->currentBuffer].color_offset;
   sf.colorPitch[0]    = vdata->color_pitch;
@@ -443,13 +445,13 @@ rsxSetRenderTarget(videoData *vdata )
   sf.colorOffset[3]   = 0;
   sf.colorPitch[3]    = 64;
 
-  sf.depthFormat      = GCM_SURFACE_ZETA_Z16;
+  sf.depthFormat      = GCM_TF_ZETA_Z16;
   sf.depthLocation    = GCM_LOCATION_RSX;
   sf.depthOffset      = vdata->depth_offset;
   sf.depthPitch       = vdata->depth_pitch;
 
-  sf.type             = GCM_SURFACE_TYPE_LINEAR;
-  sf.antiAlias 	      = GCM_SURFACE_CENTER_1;
+  sf.type             = GCM_TF_TYPE_LINEAR;
+  sf.antiAlias 	      = GCM_TF_CENTER_1;
 
   sf.width            = vdata->rsx_buffers[vdata->currentBuffer].width;
   sf.height           = vdata->rsx_buffers[vdata->currentBuffer].height;

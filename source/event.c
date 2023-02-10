@@ -38,7 +38,7 @@ eventInitialization ( eventData *edata )
   /* initialize mutex attributes */
   edata->mutex_attr.key              = 0x03 ;
   edata->mutex_attr.attr_protocol    = SYS_MUTEX_PROTOCOL_FIFO ;
-  edata->mutex_attr.attr_pshared     = SYS_MUTEX_ATTR_NOT_PSHARED ;
+  edata->mutex_attr.attr_pshared     = SYS_MUTEX_ATTR_PSHARED ;
   edata->mutex_attr.attr_recursive   = SYS_MUTEX_ATTR_RECURSIVE ;
   edata->mutex_attr.attr_adaptive    = SYS_MUTEX_ATTR_ADAPTIVE ;
 

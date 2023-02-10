@@ -30,7 +30,7 @@ audioInitialize ( audioData *adata )
   /* initialize mutex attributes */
   adata->mutex_attr.key            = 0x02 ;
   adata->mutex_attr.attr_protocol  = SYS_MUTEX_PROTOCOL_FIFO ;
-  adata->mutex_attr.attr_pshared   = SYS_MUTEX_ATTR_NOT_PSHARED ;
+  adata->mutex_attr.attr_pshared   = SYS_MUTEX_ATTR_PSHARED ;
   adata->mutex_attr.attr_recursive = SYS_MUTEX_ATTR_RECURSIVE ;
   adata->mutex_attr.attr_adaptive  = SYS_MUTEX_ATTR_ADAPTIVE ;
 

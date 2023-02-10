@@ -99,7 +99,6 @@ textureSet (gcmContextData *c, textureData *t, int idx, shaderData *vf)
                       GCM_TEXTURE_MAX_ANISO_1 ) ;
 
   rsxTextureFilter ( c,
-					 idx,
                      vf->frag.textureUnit,
                      GCM_TEXTURE_LINEAR,
                      GCM_TEXTURE_LINEAR,
@@ -127,7 +126,7 @@ textureSetDrawEnv (gcmContextData *c, textureData *t, int idx, videoData *vdata)
                     GCM_COLOR_MASK_R |
                     GCM_COLOR_MASK_A ) ;
 
-  rsxSetColorMaskMrt ( c, GCM_FALSE ) ;
+  rsxSetColorMaskMRT ( c, GCM_FALSE ) ;
 
   u16 x, y, w, h;
   f32 min, max;

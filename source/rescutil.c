@@ -175,7 +175,7 @@ rescSetRenderTarget(videoData *vdata )
   rescSrc src;
 
   sf.colorFormat = GCM_TF_COLOR_A8R8G8B8;
-  sf.colorTarget = GCM_SURFACE_TARGET_0;
+  sf.colorTarget = GCM_TF_TARGET_0;
   sf.colorLocation[0] = GCM_LOCATION_RSX;
   sf.colorOffset[0] = vdata->rsx_buffers[vdata->currentBuffer].color_offset;
   sf.colorPitch[0] = vdata->color_pitch;
@@ -190,13 +190,13 @@ rescSetRenderTarget(videoData *vdata )
   sf.colorPitch[2] = 64;
   sf.colorPitch[3] = 64;
 
-  sf.depthFormat = GCM_SURFACE_ZETA_Z16;
+  sf.depthFormat = GCM_TF_ZETA_Z16;
   sf.depthLocation = GCM_LOCATION_RSX;
   sf.depthOffset = vdata->depth_offset;
   sf.depthPitch = vdata->depth_pitch;
 
-  sf.type = GCM_SURFACE_TYPE_LINEAR;
-  sf.antiAlias 	= GCM_SURFACE_CENTER_1;
+  sf.type = GCM_TF_TYPE_LINEAR;
+  sf.antiAlias 	= GCM_TF_CENTER_1;
 
   sf.width = vdata->rsx_buffers[vdata->currentBuffer].width;
   sf.height = vdata->rsx_buffers[vdata->currentBuffer].height;

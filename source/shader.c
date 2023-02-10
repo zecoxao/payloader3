@@ -33,11 +33,8 @@ shaderInitialize (shaderData *vf)
   vf->vert.vpo = (rsxVertexProgram*)shader_vpo ;
   vf->frag.ucode = NULL ;
   vf->frag.fpo = (rsxFragmentProgram*)shader_fpo ;
-  
-  unsigned int vertsize;
-  
 
-  rsxVertexProgramGetUCode ( vf->vert.vpo, &vf->vert.ucode, &vertsize) ;
+  vf->vert.ucode = rsxVertexProgramGetUCode ( vf->vert.vpo ) ;
 
   vf->vert.projMatrix = rsxVertexProgramGetConst ( vf->vert.vpo, "projMatrix" ) ;
   vf->vert.modelViewMatrix = rsxVertexProgramGetConst ( vf->vert.vpo, "modelViewMatrix" ) ;
@@ -45,7 +42,7 @@ shaderInitialize (shaderData *vf)
   vf->vert.normal = rsxVertexProgramGetAttrib ( vf->vert.vpo, "vertexNormal" ) ;
   vf->vert.texcoord = rsxVertexProgramGetAttrib ( vf->vert.vpo, "vertexCoord" ) ;
 
-  rsxFragmentProgramGetUCode ( vf->frag.fpo, &vf->vert.ucode, &vf->frag.size ) ;
+  vf->frag.ucode = rsxFragmentProgramGetUCode ( vf->frag.fpo, &vf->frag.size ) ;
   vf->frag.buffer = (u32*)rsxMemalign ( 64, vf->frag.size ) ;
   memcpy ( vf->frag.buffer, vf->frag.ucode, vf->frag.size ) ;
   rsxAddressToOffset ( vf->frag.buffer, &vf->frag.offset ) ;

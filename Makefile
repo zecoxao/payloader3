@@ -24,7 +24,7 @@ PAYLOAD_TYPE	:=	-DNORMAL
 #   3.41.dex
 #   3.41.kiosk
 #   3.55
-FIRMWARE_VERSION ?= 3.55
+FIRMWARE_VERSION ?= 3.41
 
 # NO edits needed below here
  
@@ -161,6 +161,8 @@ payloads: PL3 psgroove
 	@cp -r $(PL3DIR)/*$(subst .,_,$(FIRMWARE_VERSION)).bin $(PAYLOADSDIR)
 	@cp -r $(PL3DIR)/dump_lv2.bin $(PAYLOADSDIR)
 	@cp -r psgroove/payload_groove_hermes.bin $(PAYLOADSDIR)
+	#@cp -r ethdebug/ethdebug.bin $(PAYLOADSDIR)
+	#@cp -r cobra/payload_groove_cobrav2.bin $(PAYLOADSDIR)
 
 #---------------------------------------------------------------------------------
 tools:	ps3load
